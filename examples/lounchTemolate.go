@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
+	//"log"
 	"html/template"
 	"net/http"
-
-	"go-google-calendar-statistic/calendar"
 )
 
 func handlerHttpTemplates(w http.ResponseWriter, r *http.Request) {
@@ -18,9 +17,6 @@ func handlerHttpTemplates(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	calendar.Auth()
-
 	http.HandleFunc("/", handlerHttpTemplates)
 	http.ListenAndServe(":8080", nil)
-
 }
