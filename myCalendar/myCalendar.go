@@ -1,4 +1,4 @@
-package calendar
+package myCalendar
 
 import (
 	"encoding/json"
@@ -90,7 +90,7 @@ func saveToken(file string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
-func Auth() {
+func Auth() (*calendar.Service, error) {
 	ctx := context.Background()
 
 	b, err := ioutil.ReadFile("client_secret.json")
@@ -109,14 +109,11 @@ func Auth() {
 		log.Fatalf("Unable to retrieve calendar Client %v", err)
 	}
 
-	t := time.Now().Format(time.RFC3339)
-	events, err := srv.Events.List("primary").ShowDeleted(false).
-		SingleEvents(true).TimeMin(t).MaxResults(10).OrderBy("startTime").Do()
-	if err != nil {
-		log.Fatalf("Unable to retrieve next ten of the user's events. %v", err)
-	}
+	return srv, err
+}
 
-	fmt.Println("Upcoming events:")
+func PrintEvents(events *calendar.Events, outMessage string) {
+	fmt.Println(outMessage)
 	if len(events.Items) > 0 {
 		for _, i := range events.Items {
 			var when string
@@ -132,5 +129,26 @@ func Auth() {
 	} else {
 		fmt.Printf("No upcoming events found.\n")
 	}
+}
 
+func GetNextTenEvents(srv *calendar.Service) (*calendar.Events, error) {
+	t := time.Now().Format(time.RFC3339)
+	events, err := srv.Events.List("primary").ShowDeleted(false).
+		SingleEvents(true).TimeMin(t).MaxResults(10).OrderBy("startTime").Do()
+	if err != nil {
+		log.Fatalf("Unable to retrieve next ten of the user's events. %v", err)
+	}
+	return events, err
+}
+
+func GetLastMonthEvents(srv *calendar.Service) (*calendar.Events, error) {
+	now := time.Now()
+	startTime := now.AddDate(0, -1, 0).Format(time.RFC3339)
+	endTime := now.Format(time.RFC3339)
+	events, err := srv.Events.List("primary").ShowDeleted(false).
+		SingleEvents(true).TimeMin(startTime).TimeMax(endTime).OrderBy("startTime").Do()
+	if err != nil {
+		log.Fatalf("Unable to retrieve next ten of the user's events. %v", err)
+	}
+	return events, err
 }
